@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/kernkw/hhapp/internal/data"
 	"github.com/kernkw/hhapp/internal/event"
+	"github.com/rs/cors"
 )
 
 func NewRouter(db *data.Store) *mux.Router {
@@ -15,7 +16,7 @@ func NewRouter(db *data.Store) *mux.Router {
 	for _, route := range routes {
 		var handler http.Handler
 
-		handler = route.HandlerFunc
+		handler = cors.Default().Handler(route.HandlerFunc)
 		handler = event.Logger(handler, route.Name)
 
 		router.

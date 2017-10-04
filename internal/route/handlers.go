@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -90,7 +91,7 @@ func UserLogin(db data.Database) http.HandlerFunc {
 
 /*
 Test with this curl command:
-curl -H "Content-Type: application/json" -d '{"name":"Panzano", "address": "909 17th St", "city": "Denver", "zip": "80202", "state": "CO", "country": "USA"}' http://localhost:8080/create_venue
+curl -H "Content-Type: application/json" -d '{"name":"Panzano", "address": "909 17th St", "city": "Denver", "zip": "80202", "state": "CO", "image": "http://coloradobites.com/wp-content/uploads/2015/05/panzanococktail1.jpg", "country": "USA"}' http://localhost:8080/create_venue
 */
 func VenueCreate(db data.Database) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -108,6 +109,152 @@ func VenueCreate(db data.Database) http.HandlerFunc {
 			return
 		}
 		id, err := db.CreateVenue(venue)
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		menu := schema.Menu{VenueID: id}
+		menuID, err := db.CreateMenu(menu)
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		type envelope struct {
+			Status  string `json:"status"`
+			VenueID int    `json:"venue_id"`
+			MenuID  int    `json:"menu_id"`
+		}
+		writeJSON(w, http.StatusCreated, envelope{http.StatusText(http.StatusCreated), id, menuID})
+	})
+}
+
+/*
+Test with this curl command:
+curl -H "Content-Type: application/json" -d '{"name":"Popular"}' http://localhost:8080/create_venue_list
+*/
+func VenueListCreate(db data.Database) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		var venueList schema.VenueList
+		body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+		if err != nil {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+		}
+		if err := r.Body.Close(); err != nil {
+			return
+		}
+		if err := json.Unmarshal(body, &venueList); err != nil {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
+		id, err := db.CreateVenueList(venueList)
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		type envelope struct {
+			Status string `json:"status"`
+			Result int    `json:"result"`
+		}
+		writeJSON(w, http.StatusCreated, envelope{http.StatusText(http.StatusCreated), id})
+	})
+}
+
+/*
+Test with this curl command:
+curl -H "Content-Type: application/json" -d '{"name":"Popular"}' http://localhost:8080/venue_list
+*/
+func VenueListGet(db data.Database) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		keys, ok := r.URL.Query()["name"]
+
+		if !ok || len(keys) < 1 {
+			log.Println("Url Param 'name' is missing")
+			return
+		}
+		name := keys[0]
+		venueList := schema.VenueList{Name: name}
+
+		vl, err := db.VenueListGet(venueList)
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		venues, err := db.VenuesByList(vl.ID)
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		type envelope struct {
+			Data []schema.Venue `json:"data"`
+		}
+		writeJSON(w, http.StatusCreated, envelope{venues})
+	})
+}
+
+/*
+Test with this curl command:
+curl -H "Content-Type: application/json" -d '{"venue_name":"Panzano", "venue_list_name": "Popular"}' http://localhost:8080/venue_list_add
+*/
+func VenueListAdd(db data.Database) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		var vl schema.VenueListAdd
+		body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+		if err != nil {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+		}
+		if err := r.Body.Close(); err != nil {
+			return
+		}
+
+		if err := json.Unmarshal(body, &vl); err != nil {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
+		id, err := db.VenueListAdd(vl)
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		type envelope struct {
+			Status string `json:"status"`
+			Result int    `json:"result"`
+		}
+		writeJSON(w, http.StatusCreated, envelope{http.StatusText(http.StatusCreated), id})
+	})
+}
+
+/*
+Test with this curl command:
+curl -H "Content-Type: application/json" -d '{"menu_id": 1, "category": "Drink", "price": 5.00, "description": "LOCAL DRAFT BEERS"}' http://localhost:8080/add_menu_item
+*/
+func MenuItemAdd(db data.Database) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		var m schema.MenuItem
+		body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+		if err != nil {
+			fmt.Println("test: ", err)
+			w.WriteHeader(http.StatusUnprocessableEntity)
+		}
+		if err := r.Body.Close(); err != nil {
+			return
+		}
+
+		if err := json.Unmarshal(body, &m); err != nil {
+			fmt.Println("test2: ", err)
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			return
+		}
+		id, err := db.AddToMenu(m)
 		if err != nil {
 			writeError(w, http.StatusConflict, err)
 			return

@@ -9,6 +9,7 @@ type Venue struct {
 	State    string `json:"state"`
 	Zip      string `json:"zip"`
 	Country  string `json:"country"`
+	Image    string `json:"image"`
 }
 
 type VenueList struct {
@@ -20,4 +21,11 @@ type VenueLists struct {
 	ID          int `json:"id"`
 	VenueID     int `json:"venue_id"`
 	VenueListID int `json:"venue_list_id"`
+}
+
+type VenueListAdd struct {
+	VenueID       int    `json:"venue_id"`
+	VenueName     string `json:"venue_name"`
+	VenueListID   int    `json:"venue_list_id"`
+	VenueListName string `json:"venue_list_name"`
 }

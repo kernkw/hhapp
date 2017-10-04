@@ -24,6 +24,30 @@ func getRoutes(s *data.Store) Routes {
 			VenueCreate(s),
 		},
 		Route{
+			"VenueListCreate",
+			"POST",
+			"/create_venue_list",
+			VenueListCreate(s),
+		},
+		Route{
+			"VenueListAdd",
+			"POST",
+			"/venue_list_add",
+			VenueListAdd(s),
+		},
+		Route{
+			"VenueListGet",
+			"GET",
+			"/venue_list",
+			VenueListGet(s),
+		},
+		Route{
+			"MenuItemAdd",
+			"POST",
+			"/add_menu_item",
+			MenuItemAdd(s),
+		},
+		Route{
 			"AccountCreate",
 			"POST",
 			"/create_account",
