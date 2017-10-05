@@ -229,6 +229,38 @@ func VenueGet(db data.Database) http.HandlerFunc {
 
 /*
 Test with this curl command:
+curl -H "Content-Type: application/json"  http://localhost:8080/menu_items?venue_id=1
+*/
+func MenuItemsGet(db data.Database) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		keys, ok := r.URL.Query()["venue_id"]
+
+		if !ok || len(keys) < 1 {
+			log.Println("Url Param 'venue_id' is missing")
+			return
+		}
+		id, err := strconv.Atoi(keys[0])
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+		m := schema.Menu{VenueID: id}
+		menus, err := db.MenuItemsGet(m)
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		type envelope struct {
+			Data []schema.MenuItem `json:"data"`
+		}
+		writeJSON(w, http.StatusCreated, envelope{menus})
+	})
+}
+
+/*
+Test with this curl command:
 curl -H "Content-Type: application/json" -d '{"venue_name":"Panzano", "venue_list_name": "Popular"}' http://localhost:8080/venue_list_add
 */
 func VenueListAdd(db data.Database) http.HandlerFunc {

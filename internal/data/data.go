@@ -28,6 +28,7 @@ type Database interface {
 	VenueListGet(vl schema.VenueList) (schema.VenueList, error)
 	VenuesByList(id int) ([]schema.Venue, error)
 	VenueGet(v schema.Venue) (schema.Venue, error)
+	MenuItemsGet(m schema.Menu) ([]schema.MenuItem, error)
 }
 
 func NewStore() (*Store, error) {
@@ -214,6 +215,32 @@ func (s *Store) VenueGet(v schema.Venue) (schema.Venue, error) {
 	})
 
 	return venue, err
+}
+
+func (s *Store) MenuItemsGet(m schema.Menu) ([]schema.MenuItem, error) {
+	var menuItems []schema.MenuItem
+	err := s.transaction(s.db, func(tx *sql.Tx) (bool, error) {
+		query := `SELECT mi.id, m.id, mi.category, mi.price, mi.description
+					FROM menu as m
+					JOIN menu_item as mi on m.id = mi.menu_id
+					WHERE m.venue_id = ?`
+		rows, err := tx.Query(query, m.VenueID)
+		if err != nil {
+			return false, err
+		}
+		for rows.Next() {
+			var mi schema.MenuItem
+			err := rows.Scan(&mi.ID, &mi.MenuID, &mi.Category, &mi.Price, &mi.Description)
+			if err != nil {
+				return false, err
+			}
+			menuItems = append(menuItems, mi)
+		}
+
+		return false, err
+	})
+
+	return menuItems, err
 }
 
 func (s *Store) CreateMenu(menu schema.Menu) (int, error) {

@@ -54,6 +54,12 @@ func getRoutes(s *data.Store) Routes {
 			MenuItemAdd(s),
 		},
 		Route{
+			"MenuItemsGet",
+			"GET",
+			"/menu_items",
+			MenuItemsGet(s),
+		},
+		Route{
 			"AccountCreate",
 			"POST",
 			"/create_account",
