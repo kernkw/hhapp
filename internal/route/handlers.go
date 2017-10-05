@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/kernkw/hhapp/internal/data"
 	"github.com/kernkw/hhapp/internal/schema"
 )
@@ -195,6 +196,34 @@ func VenueListGet(db data.Database) http.HandlerFunc {
 			Data []schema.Venue `json:"data"`
 		}
 		writeJSON(w, http.StatusCreated, envelope{venues})
+	})
+}
+
+/*
+Test with this curl command:
+curl -H "Content-Type: application/json"  http://localhost:8080/venue/1
+*/
+func VenueGet(db data.Database) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		vars := mux.Vars(r)
+		id, err := strconv.Atoi(vars["id"])
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		v := schema.Venue{ID: id}
+		venue, err := db.VenueGet(v)
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		type envelope struct {
+			Data schema.Venue `json:"data"`
+		}
+		writeJSON(w, http.StatusCreated, envelope{venue})
 	})
 }
 

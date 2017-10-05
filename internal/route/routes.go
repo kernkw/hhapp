@@ -42,6 +42,12 @@ func getRoutes(s *data.Store) Routes {
 			VenueListGet(s),
 		},
 		Route{
+			"VenueGet",
+			"GET",
+			"/venue/{id:[0-9]+}",
+			VenueGet(s),
+		},
+		Route{
 			"MenuItemAdd",
 			"POST",
 			"/add_menu_item",

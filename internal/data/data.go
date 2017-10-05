@@ -27,6 +27,7 @@ type Database interface {
 	AddToMenu(menuItem schema.MenuItem) (int, error)
 	VenueListGet(vl schema.VenueList) (schema.VenueList, error)
 	VenuesByList(id int) ([]schema.Venue, error)
+	VenueGet(v schema.Venue) (schema.Venue, error)
 }
 
 func NewStore() (*Store, error) {
