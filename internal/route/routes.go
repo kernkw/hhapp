@@ -66,6 +66,30 @@ func getRoutes(s *data.Store) Routes {
 			UserCreate(s),
 		},
 		Route{
+			"UserFavoriteCreate",
+			"POST",
+			"/create_user_favorite",
+			UserFavoriteCreate(s),
+		},
+		Route{
+			"UserFavoritesList",
+			"GET",
+			"/user_favorites",
+			UserFavoritesList(s),
+		},
+		Route{
+			"UserFavoritesGet",
+			"GET",
+			"/user_favorites/{venue_id:[0-9]+}/{user_id}",
+			UserFavoritesGet(s),
+		},
+		Route{
+			"UserFavoritesRemove",
+			"POST",
+			"/user_favorite/{id:[0-9]+}",
+			UserFavoritesRemove(s),
+		},
+		Route{
 			"UserLogin",
 			"POST",
 			"/authenticate",

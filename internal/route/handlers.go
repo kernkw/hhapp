@@ -56,6 +56,147 @@ func UserCreate(db data.Database) http.HandlerFunc {
 
 /*
 Test with this curl command:
+curl -H "Content-Type: application/json" -d '{"user_id":"12345", "venue_id": "1"}' http://localhost:8080/create_user_favorite
+*/
+func UserFavoriteCreate(db data.Database) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		decoder := json.NewDecoder(r.Body)
+		var userFav schema.UserFavorite
+		err := decoder.Decode(&userFav)
+		if err != nil {
+			writeError(w, http.StatusUnprocessableEntity, err)
+			return
+		}
+		defer r.Body.Close()
+
+		id, err := db.CreateUserFavorite(userFav)
+		if err != nil {
+			writeError(w, http.StatusUnprocessableEntity, err)
+			return
+		}
+
+		type envelope struct {
+			Status string `json:"status"`
+			Result int    `json:"result"`
+		}
+		writeJSON(w, http.StatusCreated, envelope{http.StatusText(http.StatusCreated), id})
+	})
+}
+
+/*
+Test with this curl command:
+curl -H "Content-Type: application/json" -d '{"user_id":"1234"}' http://localhost:8080/user_favorites
+*/
+func UserFavoritesList(db data.Database) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		keys, ok := r.URL.Query()["user_id"]
+
+		if !ok || len(keys) < 1 {
+			log.Println("Url Param 'user_id' is missing")
+			return
+		}
+		uid := keys[0]
+		u := schema.UserFavorite{UserID: uid}
+
+		favorites, err := db.UserFavoritesList(u)
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		type envelope struct {
+			Data []schema.Venue `json:"data"`
+		}
+		writeJSON(w, http.StatusCreated, envelope{favorites})
+	})
+}
+
+/*
+Test with this curl command:
+curl -H "Content-Type: application/json" http://localhost:8080/user_favorites/:venue_id/:user_id
+*/
+func UserFavoritesGet(db data.Database) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		vars := mux.Vars(r)
+		vid, err := strconv.Atoi(vars["venue_id"])
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		uid := vars["user_id"]
+		u := schema.UserFavorite{UserID: uid, VenueID: vid}
+
+		favorite, err := db.UserFavoritesGet(u)
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		type envelope struct {
+			Data schema.Venue `json:"data"`
+		}
+		writeJSON(w, http.StatusCreated, envelope{favorite})
+	})
+}
+
+/*
+Test with this curl command:
+curl -H "Content-Type: application/json" http://localhost:8080/user_favorites/:id
+*/
+func UserFavoritesRemove(db data.Database) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		vars := mux.Vars(r)
+		id, err := strconv.Atoi(vars["id"])
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		err = db.UserFavoritesDelete(id)
+		if err != nil {
+			writeError(w, http.StatusConflict, err)
+			return
+		}
+
+		writeJSON(w, http.StatusAccepted, nil)
+	})
+}
+
+/*
+Test with this curl command:
+curl -H "Content-Type: application/json" -d '{"user_id":"1234", "venue_id": "1"}' http://localhost:8080/remove_user_favorite
+*/
+// func UserFavoriteDelete(db data.Database) http.HandlerFunc {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		decoder := json.NewDecoder(r.Body)
+// 		var userFav schema.UserFavorite
+// 		err := decoder.Decode(&userFav)
+// 		if err != nil {
+// 			writeError(w, http.StatusUnprocessableEntity, err)
+// 			return
+// 		}
+// 		defer r.Body.Close()
+
+// 		id, err := db.DeleteUserFavorite(userFav)
+// 		if err != nil {
+// 			writeError(w, http.StatusUnprocessableEntity, err)
+// 			return
+// 		}
+
+// 		type envelope struct {
+// 			Status string `json:"status"`
+// 			Result int    `json:"result"`
+// 		}
+// 		writeJSON(w, http.StatusCreated, envelope{http.StatusText(http.StatusCreated), id})
+// 	})
+// }
+
+/*
+Test with this curl command:
 curl -H "Content-Type: application/json" -d '{"username":"test-user", "password": "password"}' http://localhost:8080/authenticate
 */
 func UserLogin(db data.Database) http.HandlerFunc {

@@ -24,6 +24,12 @@ type UserNotifications struct {
 	Email          string `json:"email"`
 }
 
+type UserFavorite struct {
+	ID      int    `json:"id"`
+	UserID  string `json:"user_id"`
+	VenueID int    `json:"venue_id"`
+}
+
 func (u *User) HashPassword() error {
 	// Generate "hash" to store from user password
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)

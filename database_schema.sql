@@ -59,16 +59,14 @@ CREATE TABLE `venue_lists` (
 CREATE TABLE `user_favorites` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `venue_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+  `user_id` varchar(100) NOT NULL,
   `updated_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (venue_id)
         REFERENCES venue(id)
         ON DELETE CASCADE,
-  FOREIGN KEY (user_id)
-        REFERENCES user(id)
-        ON DELETE CASCADE
+  UNIQUE INDEX `user_favorite_unique` (`venue_id`, `user_id`),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `menu` (

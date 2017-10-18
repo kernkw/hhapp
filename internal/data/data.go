@@ -19,6 +19,10 @@ const (
 
 type Database interface {
 	CreateUser(user schema.User) (int, error)
+	CreateUserFavorite(userFav schema.UserFavorite) (int, error)
+	UserFavoritesList(u schema.UserFavorite) ([]schema.Venue, error)
+	UserFavoritesGet(u schema.UserFavorite) (schema.Venue, error)
+	UserFavoritesDelete(id int) error
 	GetUser(user schema.User) (schema.User, error)
 	CreateVenue(venue schema.Venue) (int, error)
 	CreateVenueList(venueList schema.VenueList) (int, error)
@@ -70,6 +74,75 @@ func (s *Store) CreateUser(user schema.User) (int, error) {
 		return false, err
 	})
 	return id, err
+}
+
+func (s *Store) CreateUserFavorite(userFav schema.UserFavorite) (int, error) {
+	var id int
+	err := s.transaction(s.db, func(tx *sql.Tx) (bool, error) {
+		q := `INSERT INTO user_favorites (user_id, venue_id, created_at) VALUES (?, ?, ?)`
+		res, err := tx.Exec(q, userFav.UserID, userFav.VenueID, time.Now().UTC())
+		if err != nil {
+			return true, err
+		}
+		resID, err := res.LastInsertId()
+		id = int(resID)
+		return false, err
+	})
+	return id, err
+}
+
+func (s *Store) UserFavoritesList(u schema.UserFavorite) ([]schema.Venue, error) {
+	var venues []schema.Venue
+	err := s.transaction(s.db, func(tx *sql.Tx) (bool, error) {
+		query := `SELECT v.id, v.name, v.address, v.address2, v.city, v.state, v.zip, v.country, v.image from user_favorites as uf
+					JOIN venue as v on uf.venue_id = v.id
+					WHERE uf.user_id = ?`
+		rows, err := tx.Query(query, u.UserID)
+		if err != nil {
+			return false, err
+		}
+		for rows.Next() {
+			var venue schema.Venue
+			err := rows.Scan(&venue.ID, &venue.Name, &venue.Address, &venue.Address2, &venue.City, &venue.State, &venue.Zip, &venue.Country, &venue.Image)
+			if err != nil {
+				return false, err
+			}
+			venues = append(venues, venue)
+		}
+
+		return false, err
+	})
+
+	return venues, err
+}
+
+func (s *Store) UserFavoritesGet(u schema.UserFavorite) (schema.Venue, error) {
+	var venue schema.Venue
+	err := s.transaction(s.db, func(tx *sql.Tx) (bool, error) {
+		query := `SELECT uf.id, v.name, v.address, v.address2, v.city, v.state, v.zip, v.country, v.image from user_favorites as uf
+					JOIN venue as v on uf.venue_id = v.id
+					WHERE uf.user_id = ? AND uf.venue_id = ?`
+		row := tx.QueryRow(query, u.UserID, u.VenueID)
+		err := row.Scan(&venue.ID, &venue.Name, &venue.Address, &venue.Address2, &venue.City, &venue.State, &venue.Zip, &venue.Country, &venue.Image)
+		if err != nil {
+			return false, err
+		}
+		return false, err
+	})
+
+	return venue, err
+}
+func (s *Store) UserFavoritesDelete(id int) error {
+	err := s.transaction(s.db, func(tx *sql.Tx) (bool, error) {
+		query := `DELETE FROM user_favorites WHERE id = ?`
+		_, err := tx.Exec(query, id)
+		if err != nil {
+			return false, err
+		}
+		return false, err
+	})
+
+	return err
 }
 
 func (s *Store) GetUser(user schema.User) (schema.User, error) {

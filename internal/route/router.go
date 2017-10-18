@@ -15,8 +15,10 @@ func NewRouter(db *data.Store) *mux.Router {
 	routes := getRoutes(db)
 	for _, route := range routes {
 		var handler http.Handler
-
-		handler = cors.Default().Handler(route.HandlerFunc)
+		c := cors.New(cors.Options{
+			AllowedMethods: []string{"GET", "POST", "HEAD", "DELETE", "PUT", "OPTION"},
+		})
+		handler = c.Handler(route.HandlerFunc)
 		handler = event.Logger(handler, route.Name)
 
 		router.
