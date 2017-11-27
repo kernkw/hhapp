@@ -1,6 +1,8 @@
+language: go
+go:
+  - master
 before_install:
   git archive -v -o hhapp.zip --format=zip HEAD
-  
 deploy:
   provider: elasticbeanstalk
   access_key_id: $EB_ACCESS_KEY_ID
@@ -8,4 +10,5 @@ deploy:
   region: "us-west-2"  
   app: "apiHhapp-env"
   env: "e-v2azbefhpr"
+  bucket_name: "elasticbeanstalk-us-west-2-622953063442"
   zipfile: "hhapp.zip"
