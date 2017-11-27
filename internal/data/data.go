@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jpillora/backoff"
+	"github.com/kernkw/hhapp/internal/config"
 	"github.com/kernkw/hhapp/internal/schema"
 )
 
@@ -35,9 +36,10 @@ type Database interface {
 	MenuItemsGet(m schema.Menu) ([]schema.MenuItem, error)
 }
 
-func NewStore() (*Store, error) {
-	conn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", "root", "", "localhost", "happy_hour")
-
+func NewStore(cfg *config.Config) (*Store, error) {
+	dsn := "%s:%s@tcp(%s:%d)/%s?parseTime=true"
+	conn := fmt.Sprintf(dsn, cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
+	fmt.Println(conn)
 	db, err := sql.Open(mysql, conn)
 	if err != nil {
 		return nil, err
@@ -159,6 +161,7 @@ func (s *Store) CreateVenue(venue schema.Venue) (int, error) {
 	var id int
 	err := s.transaction(s.db, func(tx *sql.Tx) (bool, error) {
 		q := `INSERT INTO venue (name, address, address2, city, state, zip, country, image, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		fmt.Println(fmt.Sprintf("%+v", venue))
 		res, err := tx.Exec(q, venue.Name, venue.Address, venue.Address2, venue.City, venue.State, venue.Zip, venue.Country, venue.Image, time.Now().UTC())
 		if err != nil && strings.Contains(err.Error(), "Duplicate entry") {
 			return true, ErrDuplicateEntry

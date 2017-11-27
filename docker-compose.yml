@@ -1,0 +1,18 @@
+version: '2'
+services:
+  hhapp:
+    build: .
+    volumes:
+      - .:/opt/go/src/github.com/kernkw/hhapp
+    links:
+      - mysql:mysql
+    ports:
+      - "8080:8080"
+
+  mysql:
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=1
+    image: percona:5.5
+    restart: on-failure:5
+    ports:
+      - "3306:3306"

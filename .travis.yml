@@ -1,0 +1,11 @@
+before_install:
+  git archive -v -o hhapp.zip --format=zip HEAD
+  
+deploy:
+  provider: elasticbeanstalk
+  access_key_id: $EB_ACCESS_KEY_ID
+  secret_access_key: $EB_SECRET_ACCESS_KEY
+  region: "us-west-2"  
+  app: "apiHhapp-env"
+  env: "e-v2azbefhpr"
+  zipfile: "hhapp.zip"

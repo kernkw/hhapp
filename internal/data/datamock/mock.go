@@ -9,21 +9,35 @@ import (
 // similarly-named callback fields. Calling a method for which no
 // corresponding callback has been set will result in a panic.
 type Mock struct {
-	CreateUser_      func(schema.User) (int, error)
-	GetUser_         func(schema.User) (schema.User, error)
-	CreateVenue_     func(schema.Venue) (int, error)
-	CreateVenueList_ func(schema.VenueList) (int, error)
-	VenueListAdd_    func(schema.VenueListAdd) (int, error)
-	CreateMenu_      func(schema.Menu) (int, error)
-	AddToMenu_       func(schema.MenuItem) (int, error)
-	VenueListGet_    func(schema.VenueList) (schema.VenueList, error)
-	VenueByList_     func(schema.VenueList) ([]schema.Venue, error)
-	VenuesByList_    func(int) ([]schema.Venue, error)
-	VenueGet_        func(schema.Venue) (schema.Venue, error)
-	MenuItemsGet_    func(schema.Menu) ([]schema.MenuItem, error)
+	CreateUser_          func(schema.User) (int, error)
+	CreateUserFavorite_  func(schema.UserFavorite) (int, error)
+	UserFavoritesList_   func(schema.UserFavorite) ([]schema.Venue, error)
+	UserFavoritesGet_    func(schema.UserFavorite) (schema.Venue, error)
+	UserFavoritesDelete_ func(int) error
+	GetUser_             func(schema.User) (schema.User, error)
+	CreateVenue_         func(schema.Venue) (int, error)
+	CreateVenueList_     func(schema.VenueList) (int, error)
+	VenueListAdd_        func(schema.VenueListAdd) (int, error)
+	CreateMenu_          func(schema.Menu) (int, error)
+	AddToMenu_           func(schema.MenuItem) (int, error)
+	VenueListGet_        func(schema.VenueList) (schema.VenueList, error)
+	VenueByList_         func(schema.VenueList) ([]schema.Venue, error)
+	VenuesByList_        func(int) ([]schema.Venue, error)
+	VenueGet_            func(schema.Venue) (schema.Venue, error)
+	MenuItemsGet_        func(schema.Menu) ([]schema.MenuItem, error)
 }
 
-func (s *Mock) CreateUser(u schema.User) (int, error)                      { return s.CreateUser_(u) }
+func (s *Mock) CreateUser(u schema.User) (int, error) { return s.CreateUser_(u) }
+func (s *Mock) CreateUserFavorite(userFav schema.UserFavorite) (int, error) {
+	return s.CreateUserFavorite_(userFav)
+}
+func (s *Mock) UserFavoritesList(u schema.UserFavorite) ([]schema.Venue, error) {
+	return s.UserFavoritesList_(u)
+}
+func (s *Mock) UserFavoritesGet(u schema.UserFavorite) (schema.Venue, error) {
+	return s.UserFavoritesGet_(u)
+}
+func (s *Mock) UserFavoritesDelete(id int) error                           { return s.UserFavoritesDelete_(id) }
 func (s *Mock) GetUser(u schema.User) (schema.User, error)                 { return s.GetUser_(u) }
 func (s *Mock) CreateVenue(v schema.Venue) (int, error)                    { return s.CreateVenue_(v) }
 func (s *Mock) CreateVenueList(vl schema.VenueList) (int, error)           { return s.CreateVenueList_(vl) }

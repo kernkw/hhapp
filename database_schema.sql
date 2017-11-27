@@ -66,7 +66,7 @@ CREATE TABLE `user_favorites` (
   FOREIGN KEY (venue_id)
         REFERENCES venue(id)
         ON DELETE CASCADE,
-  UNIQUE INDEX `user_favorite_unique` (`venue_id`, `user_id`),
+  UNIQUE INDEX `user_favorite_unique` (`venue_id`, `user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `menu` (

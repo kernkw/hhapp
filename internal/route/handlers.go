@@ -108,7 +108,7 @@ func UserFavoritesList(db data.Database) http.HandlerFunc {
 		type envelope struct {
 			Data []schema.Venue `json:"data"`
 		}
-		writeJSON(w, http.StatusCreated, envelope{favorites})
+		writeJSON(w, http.StatusOK, envelope{favorites})
 	})
 }
 

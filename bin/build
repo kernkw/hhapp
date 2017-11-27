@@ -1,4 +1,6 @@
 #!/bin/sh
+
 set -eu
 
-go install ./...
+docker-compose build --pull
+docker-compose run --rm hhapp go vet ./...
